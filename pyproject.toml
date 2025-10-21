@@ -1,0 +1,58 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "energy-mcp-experimental"
+version = "0.1.0"
+description = "Experimental MCP server combining Vaillant energy data and UK carbon intensity insights."
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Cristian Dinu" },
+]
+keywords = ["mcp", "vaillant", "energy", "carbon-intensity", "experimental"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Utilities",
+]
+dependencies = [
+    "mcp[cli]>=1.6,<2",
+    "requests>=2.32,<3",
+]
+
+[project.optional-dependencies]
+vaillant = ["vaillant-client>=0.1.0"]
+dev = ["pytest>=8.3"]
+
+[project.scripts]
+energy-mcp = "energy_mcp_experimental.server:run"
+
+[project.urls]
+Homepage = "https://github.com/cdinu/energy-mcp-experimental"
+Repository = "https://github.com/cdinu/energy-mcp-experimental"
+"Claude Desktop" = "https://www.anthropic.com/news/claude-desktop"
+
+[tool.hatch.metadata]
+allow-direct-references = true
+
+[tool.hatch.version]
+path = "src/energy_mcp_experimental/__init__.py"
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "LICENSE",
+    "README.md",
+    "src/energy_mcp_experimental",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/energy_mcp_experimental"]
