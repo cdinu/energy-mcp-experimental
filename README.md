@@ -120,6 +120,144 @@ Logs are written to `energy-mcp-*.log` in the working directory for troubleshoot
 
 The Vaillant tools will respond with a helpful warning if the `vaillant-client` dependency is missing.
 
+---
+
+## Integrating With LLMs (MCP Clients)
+
+The **Energy MCP Experimental** server can be consumed by any LLM client that speaks the [Model Context Protocol](https://modelcontextprotocol.io/). Below are examples showing integration with Anthropic’s API, Python `agents` library, Node.js, and curl.
+
+### Anthropic (Python SDK)
+
+```python
+import anthropic
+
+client = anthropic.Anthropic()
+
+response = client.beta.messages.create(
+    model="claude-sonnet-4-5",
+    max_tokens=1000,
+    messages=[{
+        "role": "user",
+        "content": "Show me the current state of my Vaillant heat pump."
+    }],
+    mcp_servers=[{
+        "type": "url",
+        "url": "https://your-deployed-mcp-address:8000/mcp",
+        "name": "vaillant-mcp",
+        "authorization_token": "YOUR_TOKEN"
+    }],
+    betas=["mcp-client-2025-04-04"]
+)
+```
+
+### Python Agents SDK (HTTP)
+
+```python
+import asyncio
+import os
+
+from agents import Agent, Runner
+from agents.mcp import MCPServerStreamableHttp
+from agents.model_settings import ModelSettings
+
+async def main() -> None:
+    token = os.environ["MCP_SERVER_TOKEN"]
+    async with MCPServerStreamableHttp(
+        name="Vaillant MCP over HTTP",
+        params={
+            "url": "https://your-deployed-mcp-address:8000/mcp",
+            "headers": {"Authorization": f"Bearer {token}"},
+            "timeout": 10,
+        },
+        cache_tools_list=True,
+        max_retry_attempts=3,
+    ) as server:
+        agent = Agent(
+            name="Assistant",
+            instructions="Use the Vaillant MCP tools to answer questions.",
+            mcp_servers=[server],
+            model_settings=ModelSettings(tool_choice="required"),
+        )
+
+        result = await Runner.run(agent, "Get the current carbon intensity forecast for SW1A 1AA.")
+        print(result.final_output)
+
+asyncio.run(main())
+```
+
+### Python Agents SDK (stdio)
+
+```python
+from pathlib import Path
+from agents import Agent, Runner
+from agents.mcp import MCPServerStdio
+
+current_dir = Path(__file__).parent
+
+async with MCPServerStdio(
+    name="Vaillant MCP via stdio",
+    params={
+        "command": "uv",
+        "args": ["run", "energy-mcp"],
+    },
+) as server:
+    agent = Agent(
+        name="Assistant",
+        instructions="Use the Vaillant MCP tools to answer questions.",
+        mcp_servers=[server],
+    )
+    result = await Runner.run(agent, "Retrieve my Vaillant heat pump settings.")
+    print(result.final_output)
+```
+
+### curl
+
+```bash
+curl https://api.anthropic.com/v1/messages   -H "Content-Type: application/json"   -H "X-API-Key: $ANTHROPIC_API_KEY"   -H "anthropic-version: 2023-06-01"   -H "anthropic-beta: mcp-client-2025-04-04"   -d '{
+    "model": "claude-sonnet-4-5",
+    "max_tokens": 1000,
+    "messages": [{"role": "user", "content": "Get the Vaillant system topology."}],
+    "mcp_servers": [
+      {
+        "type": "url",
+        "url": "https://your-deployed-mcp-address:8000/mcp",
+        "name": "vaillant-mcp",
+        "authorization_token": "YOUR_TOKEN"
+      }
+    ]
+  }'
+```
+
+### Node.js (Anthropic SDK)
+
+```javascript
+import { Anthropic } from '@anthropic-ai/sdk';
+
+const anthropic = new Anthropic();
+
+const response = await anthropic.beta.messages.create({
+  model: "claude-sonnet-4-5",
+  max_tokens: 1000,
+  messages: [
+    {
+      role: "user",
+      content: "What is the latest energy consumption from my Vaillant heat pump?",
+    },
+  ],
+  mcp_servers: [
+    {
+      type: "url",
+      url: "https://your-deployed-mcp-address:8000/mcp",
+      name: "vaillant-mcp",
+      authorization_token: "YOUR_TOKEN",
+    },
+  ],
+  betas: ["mcp-client-2025-04-04"],
+});
+```
+
+---
+
 ## Development
 
 ```bash
