@@ -70,12 +70,33 @@ Logs are written to `energy-mcp-*.log` in the working directory for troubleshoot
 ## MCP Client Setup
 
 - **Claude Desktop**
-  1. Launch Claude Desktop and open **Settings → Developer**.
-  2. Add a new MCP Server with:
-     - **Command:** `uv`
-     - **Arguments:** `run python -m energy_mcp_experimental sse`
-     - **Directory:** Path to your `energy-mcp-experimental` checkout.
-  3. Ensure your `.env` file is loaded before starting Claude. When running, Claude will connect over SSE to the local server.
+  1. Locate `claude_desktop_config.json` (for example on macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`).
+  2. Add or update an entry under `mcpServers` similar to:
+
+     ```json
+     {
+       "mcpServers": {
+         "energy-mcp-experimental": {
+           "command": "uv",
+           "args": [
+             "run",
+             "--directory",
+             "/absolute/path/to/energy-mcp-experimental",
+             "--project",
+             "/absolute/path/to/energy-mcp-experimental",
+             "energy-mcp"
+           ],
+           "env": {
+             "VAILLANT_SERIAL": "xxxxxxxxxxx",
+             "USER_POSTCODE": "DE1"
+           }
+         }
+       }
+     }
+     ```
+
+     Adjust the paths (and any environment variables) to match your setup. Claude Desktop launches the server over stdio automatically—no SSE flag is required.
+  3. Restart Claude Desktop so the new configuration is picked up.
 
 - **VS Code (Claude or Cursor extensions)**
   1. Install the MCP-capable extension.
