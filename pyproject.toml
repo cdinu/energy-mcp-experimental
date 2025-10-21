@@ -30,7 +30,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-vaillant = ["vaillant-client>=0.1.0"]
+vaillant = [
+    "vaillant-client @ git+https://github.com/cdinu/vaillant-client.git",
+]
 dev = ["pytest>=8.3"]
 
 [project.scripts]

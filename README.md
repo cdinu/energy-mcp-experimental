@@ -32,6 +32,9 @@ cd energy-mcp-experimental
 # Install dependencies with uv
 uv pip sync uv.lock
 
+# (Optional) pull in the Vaillant extras directly from GitHub
+uv pip sync --extra vaillant uv.lock
+
 # (Recommended) install the experimental Vaillant client
 uv pip install --editable ../vaillant-client  # adjust path as needed
 ```
